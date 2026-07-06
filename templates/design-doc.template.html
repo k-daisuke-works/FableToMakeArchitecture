@@ -1,0 +1,253 @@
+<!--
+  エージェント体制提示書テンプレート(セクション組み替え式)
+
+  design-agents スキルのフェーズ3で、{{...}} を実際の設計内容で置き換えて
+  projects/<名前>/docs/design-doc.html として生成する。
+
+  ■ このテンプレートは「固定フォーム」ではなく「部品カタログ」である
+  - 固定するのは <style> と header / footer だけ。
+  - 本文のセクションは、設計の種類に合わせて取捨選択・改名・並べ替えてよい。
+    開発体制なら「分担」「開発ワークフロー」、調査系なら「調査フロー」「成果物の流れ」、
+    運用自動化なら「定期実行スケジュール」「エスカレーション基準」のように、
+    その設計を人間に説明するのに最も適した章立てを組む。
+  - ファイル末尾コメントに「追加セクション部品」の HTML があるので、必要なものを
+    コピーして本文に組み込む。新しい種類のセクションが必要なら、既存の
+    .cards / table / .flow / .note のスタイルを再利用して自作してよい。
+  - 「1. 概要」と「2. 体制(誰がいるか)」だけはどの設計でも必ず含める。
+  - 繰り返し要素(カード・行)はコメントで示したブロックを必要数コピーする。
+  - 外部リソース(CDN・フォント・画像URL)は追加しないこと。ブラウザで直接開ける
+    自己完結ファイルを維持する。
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>エージェント体制提示書 — {{プロジェクト名}}</title>
+<style>
+  :root {
+    --ink: #1a2233;
+    --sub: #5a6478;
+    --line: #dde3ee;
+    --bg: #f5f7fb;
+    --card: #ffffff;
+    --accent: #2f5fd0;
+    --accent-soft: #e8eefb;
+    --warn-soft: #fdf1e3;
+    --warn: #b06000;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Hiragino Sans", "Yu Gothic UI", "Noto Sans JP", sans-serif;
+    color: var(--ink); background: var(--bg); line-height: 1.7;
+  }
+  .page { max-width: 960px; margin: 0 auto; padding: 40px 24px 80px; }
+  header { border-bottom: 3px solid var(--accent); padding-bottom: 20px; margin-bottom: 36px; }
+  .doc-type { color: var(--accent); font-size: 13px; font-weight: 700; letter-spacing: .12em; }
+  h1 { font-size: 28px; margin-top: 6px; }
+  .meta { color: var(--sub); font-size: 13px; margin-top: 8px; }
+  h2 {
+    font-size: 19px; margin: 44px 0 16px; padding-left: 12px;
+    border-left: 5px solid var(--accent);
+  }
+  p.lead { color: var(--ink); }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 18px 20px;
+  }
+  .card .role-tag {
+    display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .05em;
+    padding: 2px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .card.main-agent { border: 2px solid var(--accent); }
+  .card h3 { font-size: 16px; margin-bottom: 6px; font-family: ui-monospace, monospace; }
+  .card .duty { font-size: 14px; }
+  .card .io { font-size: 12px; color: var(--sub); margin-top: 10px; border-top: 1px dashed var(--line); padding-top: 8px; }
+  table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 10px; overflow: hidden; font-size: 14px; }
+  th, td { border: 1px solid var(--line); padding: 10px 14px; text-align: left; vertical-align: top; }
+  th { background: var(--accent-soft); font-size: 13px; white-space: nowrap; }
+  td code, h3 code { font-family: ui-monospace, monospace; font-size: 13px; background: var(--bg); padding: 1px 6px; border-radius: 4px; }
+  .flow { display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; }
+  .flow .step {
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 12px 16px; flex: 1 1 160px; min-width: 160px; position: relative;
+  }
+  .flow .step .num {
+    font-size: 11px; font-weight: 700; color: var(--accent);
+  }
+  .flow .step .who { font-size: 12px; color: var(--sub); margin-top: 4px; }
+  .flow .arrow { align-self: center; color: var(--sub); font-size: 18px; }
+  .note {
+    background: var(--warn-soft); border-left: 4px solid var(--warn);
+    padding: 12px 16px; border-radius: 0 8px 8px 0; font-size: 14px; margin-top: 12px;
+  }
+  ul.plain { padding-left: 1.4em; }
+  footer { margin-top: 60px; color: var(--sub); font-size: 12px; border-top: 1px solid var(--line); padding-top: 16px; }
+  @media print {
+    body { background: #fff; }
+    .page { padding: 0; max-width: none; }
+    .card, table { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header>
+  <div class="doc-type">AGENT ARCHITECTURE — エージェント体制提示書</div>
+  <h1>{{プロジェクト名}}</h1>
+  <div class="meta">生成日: {{YYYY-MM-DD}} ｜ 採用パターン: {{採用パターン名}} ｜ 生成元: FableToMakeArchitecture</div>
+</header>
+
+<h2>1. プロジェクト概要</h2>
+<p class="lead">{{何を開発するプロジェクトか、技術スタック、規模・リスク判定を3〜4文で}}</p>
+
+<h2>2. 体制 — 誰がいるか</h2>
+<div class="cards">
+  <div class="card main-agent">
+    <span class="role-tag">メインエージェント</span>
+    <h3>Claude Code(本体)</h3>
+    <div class="duty">{{メインエージェントが自分で行うこと。例: 要件整理、実装、コミット}}</div>
+  </div>
+  <!-- ▼ サブエージェントの数だけこのカードを繰り返す -->
+  <div class="card">
+    <span class="role-tag">サブエージェント</span>
+    <h3><code>{{agent-name}}</code></h3>
+    <div class="duty">{{責務を1〜2文}}</div>
+    <div class="io">入力: {{渡すもの}} ／ 出力: {{返すもの}} ／ 権限: {{tools 制限}}</div>
+  </div>
+  <!-- ▲ 繰り返しここまで -->
+</div>
+
+<!-- 以降のセクションは設計に合わせて取捨選択・改名する(冒頭コメント参照) -->
+<h2>3. 分担 — 誰が何を行うか</h2>
+<table>
+  <thead>
+    <tr><th>作業</th><th>担当</th><th>起動方法</th><th>内容</th></tr>
+  </thead>
+  <tbody>
+    <!-- ▼ 作業の数だけこの行を繰り返す(実装・レビュー・テスト・調査など) -->
+    <tr>
+      <td>{{作業名。例: 機能実装}}</td>
+      <td>{{担当。例: メインエージェント}}</td>
+      <td>{{例: /new-feature スキル}}</td>
+      <td>{{何をどこまでやるか}}</td>
+    </tr>
+    <!-- ▲ 繰り返しここまで -->
+  </tbody>
+</table>
+
+<h2>4. 標準ワークフロー — 仕事はこう流れる</h2>
+<div class="flow">
+  <!-- ▼ ステップの数だけ繰り返す。ステップ間に <div class="arrow">→</div> を挟む -->
+  <div class="step">
+    <div class="num">STEP 1</div>
+    <div>{{例: /new-feature で実装開始}}</div>
+    <div class="who">担当: {{担当}}</div>
+  </div>
+  <div class="arrow">→</div>
+  <div class="step">
+    <div class="num">STEP 2</div>
+    <div>{{例: code-reviewer が差分レビュー}}</div>
+    <div class="who">担当: {{担当}}</div>
+  </div>
+  <!-- ▲ 繰り返しここまで -->
+</div>
+<div class="note">{{ワークフロー上の必須ルール。例: レビュー指摘の要修正が残っている間はコミットしない}}</div>
+
+<h2>5. スキル一覧</h2>
+<table>
+  <thead>
+    <tr><th>スキル</th><th>いつ使うか</th><th>やること</th></tr>
+  </thead>
+  <tbody>
+    <!-- ▼ スキルの数だけ繰り返す -->
+    <tr>
+      <td><code>/{{skill-name}}</code></td>
+      <td>{{使う場面}}</td>
+      <td>{{手順の要約}}</td>
+    </tr>
+    <!-- ▲ 繰り返しここまで -->
+  </tbody>
+</table>
+
+<h2>6. 運用ルールと前提</h2>
+<ul class="plain">
+  <li>{{permissions の要点。例: npm run test は自動許可、.env の読み取りは禁止}}</li>
+  <li>{{推測で埋めた前提があればここに明記}}</li>
+  <li>{{あえて入れなかった構成物とその理由}}</li>
+</ul>
+
+<footer>
+  この提示書は projects/{{プロジェクト名}}/ の実際の構成(CLAUDE.md・.claude/)から生成されています。
+  構成を変更した場合は /review-design で提示書との整合を確認してください。
+</footer>
+
+</div>
+
+<!-- ============================================================
+  ▼▼ 追加セクション部品カタログ ▼▼
+  設計の種類に応じて、必要な部品を本文(footer の前)へコピーして使う。
+  章番号と {{...}} は組み込み時に調整する。使わない部品はこのコメントごと
+  生成物から削除してよい(残しても表示には影響しない)。
+============================================================= -->
+<!--
+【部品A: 並列パイプライン】大量の類似タスクを並列処理する設計向け
+<h2>N. 並列パイプライン — 処理の流れ</h2>
+<div class="flow">
+  <div class="step"><div class="num">入力</div><div>{{処理対象。例: 移植対象モジュール一覧}}</div></div>
+  <div class="arrow">→</div>
+  <div class="step"><div class="num">並列処理</div><div>{{各エージェントが1件ずつ担当}}</div><div class="who">担当: {{agent-name}} × 並列</div></div>
+  <div class="arrow">→</div>
+  <div class="step"><div class="num">検証・集約</div><div>{{検証方法と集約先}}</div><div class="who">担当: {{担当}}</div></div>
+</div>
+<div class="note">{{並列時の注意。例: 同一ファイルを触るタスクは同時に走らせない}}</div>
+
+【部品B: 定期実行スケジュール】運用自動化・監視系の設計向け
+<h2>N. 定期実行スケジュール</h2>
+<table>
+  <thead><tr><th>タイミング</th><th>実行内容</th><th>担当</th><th>結果の通知先</th></tr></thead>
+  <tbody>
+    <tr><td>{{例: 毎朝9時}}</td><td>{{例: 前日のエラーログ集計}}</td><td>{{担当}}</td><td>{{例: レポートを reports/ に出力}}</td></tr>
+  </tbody>
+</table>
+
+【部品C: 成果物とデータの流れ】調査・レポート系の設計向け
+<h2>N. 成果物とデータの流れ</h2>
+<table>
+  <thead><tr><th>成果物</th><th>作る人</th><th>形式・置き場所</th><th>使う人・用途</th></tr></thead>
+  <tbody>
+    <tr><td>{{例: 調査メモ}}</td><td>{{例: researcher}}</td><td>{{例: notes/*.md}}</td><td>{{例: メインエージェントが報告書に統合}}</td></tr>
+  </tbody>
+</table>
+
+【部品D: 判断基準とエスカレーション】自律運用する設計向け
+<h2>N. 判断基準とエスカレーション</h2>
+<table>
+  <thead><tr><th>状況</th><th>エージェントの判断</th><th>人間に確認するか</th></tr></thead>
+  <tbody>
+    <tr><td>{{例: テストが失敗した}}</td><td>{{例: 3回まで自動修正を試みる}}</td><td>{{例: 3回失敗したら停止して報告}}</td></tr>
+  </tbody>
+</table>
+
+【部品E: 外部連携】MCP・外部API・他システムと連携する設計向け
+<h2>N. 外部連携</h2>
+<table>
+  <thead><tr><th>連携先</th><th>用途</th><th>使うエージェント</th><th>認証・権限の前提</th></tr></thead>
+  <tbody>
+    <tr><td>{{例: GitHub (gh CLI)}}</td><td>{{例: PR作成}}</td><td>{{担当}}</td><td>{{例: gh auth login 済みであること}}</td></tr>
+  </tbody>
+</table>
+
+【部品F: 品質ゲート】厳格な品質要求がある設計向け
+<h2>N. 品質ゲート — 完了の条件</h2>
+<ul class="plain">
+  <li>{{例: 全テストが通っている(npm run test)}}</li>
+  <li>{{例: code-reviewer の「要修正」指摘がゼロ}}</li>
+</ul>
+-->
+
+</body>
+</html>
