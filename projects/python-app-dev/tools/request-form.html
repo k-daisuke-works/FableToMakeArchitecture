@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>要件定義フォーム — python-app-dev(Python アプリ開発)</title>
+<style>
+  :root {
+    --ink: #1a2233;
+    --sub: #5a6478;
+    --line: #dde3ee;
+    --bg: #f5f7fb;
+    --card: #ffffff;
+    --accent: #2f5fd0;
+    --accent-soft: #e8eefb;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Hiragino Sans", "Yu Gothic UI", "Noto Sans JP", sans-serif;
+    color: var(--ink); background: var(--bg); line-height: 1.7;
+  }
+  .page { max-width: 820px; margin: 0 auto; padding: 40px 24px 80px; }
+  header { border-bottom: 3px solid var(--accent); padding-bottom: 20px; margin-bottom: 12px; }
+  .doc-type { color: var(--accent); font-size: 13px; font-weight: 700; letter-spacing: .12em; }
+  h1 { font-size: 26px; margin-top: 6px; }
+  .howto { color: var(--sub); font-size: 14px; margin-bottom: 32px; }
+  fieldset {
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 20px 24px; margin-bottom: 20px;
+  }
+  legend {
+    font-weight: 700; font-size: 15px; padding: 0 10px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 999px;
+  }
+  legend .req { color: #c02020; font-size: 12px; margin-left: 4px; }
+  .hint { font-size: 12.5px; color: var(--sub); margin-bottom: 10px; }
+  input[type="text"], textarea, select {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px;
+    font: inherit; font-size: 14px; background: #fff; color: var(--ink);
+  }
+  input[type="text"]:focus, textarea:focus, select:focus {
+    outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent);
+  }
+  textarea { min-height: 84px; resize: vertical; }
+  .choices { display: flex; flex-direction: column; gap: 8px; }
+  .choices label {
+    display: flex; gap: 10px; align-items: flex-start; font-size: 14px;
+    padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; cursor: pointer;
+  }
+  .choices label:hover { background: var(--accent-soft); }
+  .choices input { margin-top: 5px; flex-shrink: 0; }
+  .choices .desc { color: var(--sub); font-size: 12.5px; display: block; }
+  .actions { display: flex; gap: 12px; margin: 28px 0 16px; flex-wrap: wrap; }
+  button {
+    font: inherit; font-weight: 700; font-size: 15px; padding: 12px 28px;
+    border-radius: 8px; border: none; cursor: pointer;
+  }
+  #generate { background: var(--accent); color: #fff; }
+  #generate:hover { background: #2549a8; }
+  #copy, #save { background: var(--card); color: var(--accent); border: 2px solid var(--accent); display: none; }
+  #copy:hover, #save:hover { background: var(--accent-soft); }
+  #error { color: #c02020; font-size: 14px; font-weight: 700; display: none; margin-bottom: 12px; }
+  #output-wrap { display: none; }
+  #output {
+    width: 100%; min-height: 320px; font-family: ui-monospace, "Courier New", monospace;
+    font-size: 13px; line-height: 1.6; padding: 16px; border: 1px solid var(--line);
+    border-radius: 10px; background: #10141f; color: #dce4f5; white-space: pre; overflow: auto;
+  }
+  .output-hint { font-size: 13px; color: var(--sub); margin: 8px 0 6px; }
+  #copied { color: #1a7f37; font-weight: 700; font-size: 14px; display: none; margin-left: 4px; align-self: center; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header>
+  <div class="doc-type">REQUEST — Python アプリ開発 要件定義フォーム</div>
+  <h1>何を作りたいか教えてください</h1>
+</header>
+<p class="howto">
+  項目を埋めて「指示文を生成」を押すと、このプロジェクトで起動した Claude Code に
+  そのまま貼り付けられる指示文ができます。分からない項目は空欄のままで構いません
+  (エージェント側が推測し、節目で確認してきます)。生成した指示文はコピーのほか、
+  ファイル(.md)として保存もできます。
+</p>
+
+<form id="form" onsubmit="return false;">
+
+  <fieldset>
+    <legend>依頼の種類</legend>
+    <div class="hint">選んだ種類に関係する項目だけが下に表示されます。どちらも実装前に競合調査→計画の確認を挟みます。</div>
+    <div class="choices" id="kind">
+      <label><input type="radio" name="kind" value="new-app" checked><span>新しいアプリを作る<span class="desc">要件から競合調査→計画→実装→テスト→レビューまで一気通貫</span></span></label>
+      <label><input type="radio" name="kind" value="add-feature"><span>既存アプリに機能・画面を追加する<span class="desc">影響範囲を確認しながら追加開発する</span></span></label>
+    </div>
+  </fieldset>
+
+  <fieldset id="fs-want">
+    <legend>作りたいもの <span class="req">必須</span></legend>
+    <div class="hint">どんなアプリを、何のために作りたいか。自由に書いてください。</div>
+    <textarea id="want" placeholder="例: チームの日報を集めて週次サマリーを自動生成するWebアプリ。手作業での集計をなくしたい。"></textarea>
+  </fieldset>
+
+  <fieldset id="fs-apptype">
+    <legend>アプリの種類</legend>
+    <div class="choices" id="apptype">
+      <label><input type="radio" name="apptype" value="Webアプリ"><span>Webアプリ<span class="desc">ブラウザで使う</span></span></label>
+      <label><input type="radio" name="apptype" value="CLI(コマンドラインツール)"><span>CLI<span class="desc">ターミナルで使うコマンド</span></span></label>
+      <label><input type="radio" name="apptype" value="GUI(デスクトップアプリ)"><span>GUI<span class="desc">PCにインストールして使う</span></span></label>
+      <label><input type="radio" name="apptype" value="API(バックエンドのみ)"><span>API<span class="desc">画面なし、他システムから呼ばれる</span></span></label>
+      <label><input type="radio" name="apptype" value="未定(お任せ)" checked><span>未定(お任せ)<span class="desc">計画時に提案してほしい</span></span></label>
+    </div>
+  </fieldset>
+
+  <fieldset id="fs-features">
+    <legend>主な機能・画面</legend>
+    <div class="hint">必要な機能や画面を箇条書きで。思いつく範囲でOK。</div>
+    <textarea id="features" placeholder="例:&#10;- 日報の投稿画面&#10;- 週次サマリーの自動生成&#10;- 過去分の検索"></textarea>
+  </fieldset>
+
+  <fieldset id="fs-users">
+    <legend>想定ユーザー・利用場面</legend>
+    <div class="hint">誰がどんな場面で使うか。</div>
+    <input type="text" id="users" placeholder="例: 5人のチームが毎日の業務終わりに使う">
+  </fieldset>
+
+  <fieldset id="fs-research-topics">
+    <legend>競合調査で特に知りたいこと</legend>
+    <div class="hint">実装前に既存の類似製品・OSS・ライブラリを調査して報告します。特に知りたい観点があれば。</div>
+    <textarea id="research-topics" placeholder="例: 既存のOSSで済むなら作らず使いたい。無料で使えるものを優先して調べてほしい。"></textarea>
+  </fieldset>
+
+  <fieldset id="fs-add">
+    <legend>追加したい機能・画面 <span class="req">必須</span></legend>
+    <div class="hint">何を追加・変更したいか。</div>
+    <textarea id="add" placeholder="例: 一覧画面にCSVエクスポートボタンを追加したい。"></textarea>
+  </fieldset>
+
+  <fieldset id="fs-related">
+    <legend>関連する既存機能・画面</legend>
+    <div class="hint">影響しそうな既存部分が分かっていれば。</div>
+    <input type="text" id="related" placeholder="例: 一覧画面(app/views/list.py あたり)">
+  </fieldset>
+
+  <fieldset id="fs-research-need">
+    <legend>競合調査の要否</legend>
+    <div class="hint">新しいライブラリの選定を伴いそうなら「必要」を推奨。</div>
+    <div class="choices" id="research-need">
+      <label><input type="radio" name="research-need" value="必要"><span>必要<span class="desc">実装前に既存ライブラリ・類似実装を調べて報告してほしい</span></span></label>
+      <label><input type="radio" name="research-need" value="不要"><span>不要<span class="desc">調査を飛ばして計画から始めてよい</span></span></label>
+      <label><input type="radio" name="research-need" value="お任せ" checked><span>お任せ<span class="desc">新規ライブラリ導入を伴うときだけ調査(既定)</span></span></label>
+    </div>
+  </fieldset>
+
+  <fieldset id="fs-constraints">
+    <legend>技術的な制約・希望</legend>
+    <div class="hint">使いたい/避けたいライブラリ、Python バージョン、動かす環境など。</div>
+    <textarea id="constraints" placeholder="例: Python 3.12。社内サーバーで動かすのでDockerで配布したい。"></textarea>
+  </fieldset>
+
+  <div id="error"></div>
+
+  <div class="actions">
+    <button id="generate" type="button">指示文を生成</button>
+    <button id="copy" type="button">クリップボードにコピー</button>
+    <button id="save" type="button">ファイルとして保存(.md)</button>
+    <span id="copied">✓ コピーしました</span>
+  </div>
+
+  <div id="output-wrap">
+    <div class="output-hint">↓ これをこのプロジェクトで起動した Claude Code に貼り付けるか、保存したファイルのパスを渡してください。</div>
+    <textarea id="output" readonly spellcheck="false"></textarea>
+  </div>
+
+</form>
+
+</div>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+
+  function radioValue(name) {
+    var el = document.querySelector('input[name="' + name + '"]:checked');
+    return el ? el.value : '';
+  }
+
+  function line(label, value, fallback) {
+    return '【' + label + '】' + (value && value.trim() ? value.trim() : fallback);
+  }
+
+  /* 依頼の種類に応じて、関係する項目だけを表示する */
+  var KIND_FIELDS = {
+    'new-app':     ['fs-want', 'fs-apptype', 'fs-features', 'fs-users', 'fs-research-topics', 'fs-constraints'],
+    'add-feature': ['fs-add', 'fs-related', 'fs-research-need', 'fs-constraints']
+  };
+  var ALL_FIELDS = ['fs-want', 'fs-apptype', 'fs-features', 'fs-users', 'fs-research-topics', 'fs-add', 'fs-related', 'fs-research-need', 'fs-constraints'];
+
+  function applyVisibility() {
+    var visible = KIND_FIELDS[radioValue('kind')] || ALL_FIELDS;
+    ALL_FIELDS.forEach(function (id) {
+      $(id).style.display = visible.indexOf(id) >= 0 ? '' : 'none';
+    });
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('input[name="kind"]'), function (el) {
+    el.addEventListener('change', applyVisibility);
+  });
+  applyVisibility();
+
+  function showError(msg, focusId) {
+    $('error').textContent = msg;
+    $('error').style.display = 'block';
+    $(focusId).focus();
+  }
+
+  function build() {
+    var kind = radioValue('kind');
+
+    if (kind === 'new-app' && !$('want').value.trim()) {
+      showError('「作りたいもの」は必須です。どんなアプリを作りたいか記入してください。', 'want');
+      return null;
+    }
+    if (kind === 'add-feature' && !$('add').value.trim()) {
+      showError('「追加したい機能・画面」は必須です。何を追加したいか記入してください。', 'add');
+      return null;
+    }
+    $('error').style.display = 'none';
+
+    var parts;
+    if (kind === 'new-app') {
+      parts = [
+        '/develop 以下の要件定義書に基づいて開発を進めてください。',
+        '',
+        line('依頼種別', '新規アプリ開発', ''),
+        line('作りたいもの', $('want').value, ''),
+        line('アプリの種類', radioValue('apptype'), '未定(お任せ)'),
+        line('主な機能・画面', $('features').value, '未回答(作りたいものから提案してよい)'),
+        line('想定ユーザー・利用場面', $('users').value, '未回答(推測してよい)'),
+        line('競合調査で特に知りたいこと', $('research-topics').value, '特になし(標準の観点でよい)'),
+        line('技術的な制約・希望', $('constraints').value, '特になし(計画時に提案してよい)')
+      ];
+    } else {
+      parts = [
+        '/develop 以下の要件定義書に基づいて開発を進めてください。',
+        '',
+        line('依頼種別', '機能追加・画面追加', ''),
+        line('追加したい機能・画面', $('add').value, ''),
+        line('関連する既存機能・画面', $('related').value, '未回答(コードから調べてよい)'),
+        line('競合調査の要否', radioValue('research-need'), 'お任せ'),
+        line('技術的な制約・希望', $('constraints').value, '特になし')
+      ];
+    }
+    parts.push('');
+    parts.push('「未回答」の項目は推測で埋めて構いません。節目(競合調査後・計画確定時・完成時)で確認してください。');
+    return parts.join('\n');
+  }
+
+  $('generate').addEventListener('click', function () {
+    var text = build();
+    if (text === null) return;
+    $('output').value = text;
+    $('output-wrap').style.display = 'block';
+    $('copy').style.display = 'inline-block';
+    $('save').style.display = 'inline-block';
+    $('copied').style.display = 'none';
+    $('output').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+
+  $('copy').addEventListener('click', function () {
+    var out = $('output');
+    function done() {
+      $('copied').style.display = 'inline';
+      setTimeout(function () { $('copied').style.display = 'none'; }, 2000);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(out.value).then(done, function () { fallback(); });
+    } else {
+      fallback();
+    }
+    function fallback() {
+      out.focus();
+      out.select();
+      try { document.execCommand('copy'); done(); } catch (e) { /* 手動コピーしてもらう */ }
+    }
+  });
+
+  $('save').addEventListener('click', function () {
+    var text = $('output').value;
+    var stamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    var blob = new Blob([text], { type: 'text/markdown;charset=utf-8' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'request-' + stamp + '.md';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+  });
+})();
+</script>
+</body>
+</html>

@@ -86,13 +86,19 @@
 <form id="form" onsubmit="return false;">
 
   <fieldset>
-    <legend>1. 目的 <span class="req">必須</span></legend>
+    <legend>1. プロジェクト名</legend>
+    <div class="hint">この体制の名前。生成先フォルダ名(projects/〜)の元になります。日本語でも英語でも可。未定なら空欄でOK(目的から命名されます)。</div>
+    <input type="text" id="title" placeholder="例: 勤怠管理API / attendance-api">
+  </fieldset>
+
+  <fieldset>
+    <legend>2. 目的 <span class="req">必須</span></legend>
     <div class="hint">このエージェント体制に何をさせたいか。自由に書いてください。(例: Spring Boot で社内向け勤怠管理APIを開発したい / 競合他社の動向を毎週調査してレポートさせたい)</div>
     <textarea id="purpose" placeholder="例: Java(Spring Boot)で社内向け勤怠管理システムのAPIを開発する体制が欲しい"></textarea>
   </fieldset>
 
   <fieldset>
-    <legend>2. 体制の種類</legend>
+    <legend>3. 体制の種類</legend>
     <div class="choices" id="kind">
       <label><input type="radio" name="kind" value="ソフトウェア開発"><span>ソフトウェア開発<span class="desc">アプリ・API・ツールなどを実装する</span></span></label>
       <label><input type="radio" name="kind" value="調査・リサーチ"><span>調査・リサーチ<span class="desc">情報収集・分析・レポート作成が中心</span></span></label>
@@ -103,13 +109,13 @@
   </fieldset>
 
   <fieldset>
-    <legend>3. 技術スタック・対象環境</legend>
+    <legend>4. 技術スタック・対象環境</legend>
     <div class="hint">言語・フレームワーク・対象システムなど。未定なら空欄でOK。</div>
     <input type="text" id="stack" placeholder="例: Java 21 / Spring Boot / PostgreSQL / GitHub Actions">
   </fieldset>
 
   <fieldset>
-    <legend>4. 規模感</legend>
+    <legend>5. 規模感</legend>
     <div class="choices" id="scale">
       <label><input type="radio" name="scale" value="S(小規模・個人)"><span>S — 小規模・個人<span class="desc">1人で使う。コード量も小さい</span></span></label>
       <label><input type="radio" name="scale" value="M(中規模・継続開発)"><span>M — 中規模・継続<span class="desc">数ヶ月以上続く。機能追加を繰り返す</span></span></label>
@@ -118,7 +124,7 @@
   </fieldset>
 
   <fieldset>
-    <legend>5. リスク要素(あてはまるもの全て)</legend>
+    <legend>6. リスク要素(あてはまるもの全て)</legend>
     <div class="choices" id="risks">
       <label><input type="checkbox" value="金銭・決済を扱う"><span>金銭・決済を扱う</span></label>
       <label><input type="checkbox" value="個人情報を扱う"><span>個人情報を扱う</span></label>
@@ -128,7 +134,7 @@
   </fieldset>
 
   <fieldset>
-    <legend>6. 品質要求</legend>
+    <legend>7. 品質要求</legend>
     <div class="choices" id="quality">
       <label><input type="radio" name="quality" value="プロトタイプ品質(まず動けばよい)"><span>プロトタイプ<span class="desc">まず動けばよい。スピード優先</span></span></label>
       <label><input type="radio" name="quality" value="通常(テストあり、常識的な品質)"><span>通常<span class="desc">テストを書き、常識的な品質を保つ</span></span></label>
@@ -137,13 +143,13 @@
   </fieldset>
 
   <fieldset>
-    <legend>7. 繰り返し発生しそうな作業</legend>
+    <legend>8. 繰り返し発生しそうな作業</legend>
     <div class="hint">週1回以上やりそうな定型作業。スキル化の候補になります。(例: 画面の追加、週次レポート作成、リリース前チェック)</div>
     <textarea id="repetitive" placeholder="例: APIエンドポイントの追加、DBマイグレーション作成、リリース前の動作確認"></textarea>
   </fieldset>
 
   <fieldset>
-    <legend>8. 人間(あなた)の関与度</legend>
+    <legend>9. 人間(あなた)の関与度</legend>
     <div class="choices" id="autonomy">
       <label><input type="radio" name="autonomy" value="都度確認してほしい"><span>都度確認<span class="desc">大きな作業の前は毎回確認してほしい</span></span></label>
       <label><input type="radio" name="autonomy" value="節目だけ確認してほしい"><span>節目だけ確認<span class="desc">設計や完了の節目だけ確認、あとは任せる</span></span></label>
@@ -152,12 +158,12 @@
   </fieldset>
 
   <fieldset>
-    <legend>9. その他の要望</legend>
+    <legend>10. その他の要望</legend>
     <div class="hint">こういうエージェントが欲しい、これはやらせたくない、参考にしたい既存体制、など何でも。</div>
     <textarea id="notes" placeholder="例: レビューは厳しめの性格のエージェントにしてほしい。日本語でコミットメッセージを書いてほしい。"></textarea>
   </fieldset>
 
-  <div id="error">「1. 目的」は必須です。何をさせたい体制なのか記入してください。</div>
+  <div id="error">「2. 目的」は必須です。何をさせたい体制なのか記入してください。</div>
 
   <div class="actions">
     <button id="generate" type="button">指示文を生成</button>
@@ -204,6 +210,7 @@
     var parts = [
       '/design-agents 以下の要件定義フォームの内容に基づいて、エージェント体制を設計・構築してください。',
       '',
+      line('プロジェクト名', $('title').value, '未定(目的から英語ケバブケースで命名してよい)'),
       line('目的', purpose, ''),
       line('体制の種類', radioValue('kind'), '未回答(目的から推測してよい)'),
       line('技術スタック・対象環境', $('stack').value, '未定(推測してよいが、決めつけずプレースホルダ可)'),
